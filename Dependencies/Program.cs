@@ -4,9 +4,12 @@ namespace Dependencies
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(string[] assemblies)
         {
-            Console.WriteLine("Hello Dependencies");
+            foreach (var assembly in assemblies)
+            {
+                Console.WriteLine(assembly);
+            }
         }
     }
 }
