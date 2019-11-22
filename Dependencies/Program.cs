@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Reflection;
 
 namespace Dependencies
 {
     class Program
     {
-        static void Main(string[] assemblies)
+        static void Main(string[] assemblyPaths)
         {
-            foreach (var assembly in assemblies)
+            foreach (var assemblyPath in assemblyPaths)
             {
-                Console.WriteLine(assembly);
+                var assembly = Assembly.LoadFile(assemblyPath);
+                Console.WriteLine(assembly.FullName);
             }
         }
     }
