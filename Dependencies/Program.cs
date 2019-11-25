@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using CommandLine;
+using NuGet;
 
 namespace Dependencies
 {
@@ -13,6 +14,7 @@ namespace Dependencies
         private static readonly Dictionary<string, Assembly> Assemblies = new Dictionary<string, Assembly>();
         private static readonly Dictionary<string, Assembly> InputAssemblies = new Dictionary<string, Assembly>();
         private static readonly Dictionary<string, Assembly> Dependencies = new Dictionary<string, Assembly>();
+        private static readonly Dictionary<string, IPackage> Packages = new Dictionary<string, IPackage>();
 
         static int Main(string[] args)
         {
@@ -29,6 +31,8 @@ namespace Dependencies
             {
                 ComputeDependencies(inputAssembly, options.Recursive);
             }
+
+            ComputePackages(options.NuGetPath);
 
             var output = Dependencies.Except(InputAssemblies);
             Print(output);
@@ -90,6 +94,25 @@ namespace Dependencies
                         if (isRecursive)
                         {
                             ComputeDependencies(dependencyPathAndAssembly.Value, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void ComputePackages(string nugetPath)
+        {
+            var repository = new LocalPackageRepository(nugetPath);
+            foreach (var dependency in Dependencies)
+            {
+                foreach (IPackage package in repository.GetPackages())
+                {
+                    var files = package.GetFiles();
+                    if (files.Any(f => f.Path.Contains(dependency.Key)))
+                    {
+                        if (!Packages.ContainsKey(dependency.Key))
+                        {
+                            Packages[dependency.Key] = package;
                         }
                     }
                 }
