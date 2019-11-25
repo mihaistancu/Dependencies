@@ -11,6 +11,7 @@ namespace Dependencies
     {
         private static string InputPath;
         private static string InputFilter;
+        private static bool IsRecursive;
         private static readonly Dictionary<string, Assembly> Assemblies = new Dictionary<string, Assembly>();
         private static readonly Dictionary<string, Assembly> InputAssemblies = new Dictionary<string, Assembly>();
         private static readonly Dictionary<string, Assembly> Dependencies = new Dictionary<string, Assembly>();
@@ -19,6 +20,11 @@ namespace Dependencies
         {
             InputPath = args[0];
             InputFilter = args[1];
+
+            if (args.Length == 3 && args[2] == "recursive")
+            {
+                IsRecursive = true;
+            }
 
             LoadAssemblies();
 
@@ -71,7 +77,10 @@ namespace Dependencies
                     if (!Dependencies.ContainsKey(dependencyPathAndAssembly.Key))
                     {
                         Dependencies[dependencyPathAndAssembly.Key] = dependencyPathAndAssembly.Value;
-                        ComputeDependencies(dependencyPathAndAssembly.Value);
+                        if (IsRecursive)
+                        {
+                            ComputeDependencies(dependencyPathAndAssembly.Value);
+                        }
                     }
                 }
             }
