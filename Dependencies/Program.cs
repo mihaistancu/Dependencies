@@ -40,7 +40,7 @@ namespace Dependencies
         {
             foreach (var error in errors)
             {
-                Console.WriteLine(error.ToString());
+                Console.WriteLine(error.Tag);
             }
 
             return 1;
@@ -48,16 +48,19 @@ namespace Dependencies
 
         private static void LoadAssemblies(string path)
         {
-            foreach (var dll in Directory.GetFiles(path, "*.dll"))
+            new List<string>{"*.dll", "*.exe"}.ForEach(searchPattern =>
             {
-                try
+                foreach (var file in Directory.GetFiles(path, searchPattern))
                 {
-                    var assembly = Assembly.LoadFile(dll);
-                    var filename = Path.GetFileName(dll);
-                    Assemblies[filename] = assembly;
+                    try
+                    {
+                        var assembly = Assembly.LoadFile(file);
+                        var filename = Path.GetFileName(file);
+                        Assemblies[filename] = assembly;
+                    }
+                    catch { }
                 }
-                catch { }
-            }
+            });
         }
 
         private static void FilterAssemblies(string filter)
@@ -72,7 +75,7 @@ namespace Dependencies
             }
         }
 
-        private static void ComputeDependencies(Assembly assembly, bool isRecursive = true)
+        private static void ComputeDependencies(Assembly assembly, bool isRecursive)
         {
             var dependencies = assembly.GetReferencedAssemblies();
             foreach (var dependency in dependencies)
@@ -86,7 +89,7 @@ namespace Dependencies
                         Dependencies[dependencyPathAndAssembly.Key] = dependencyPathAndAssembly.Value;
                         if (isRecursive)
                         {
-                            ComputeDependencies(dependencyPathAndAssembly.Value);
+                            ComputeDependencies(dependencyPathAndAssembly.Value, true);
                         }
                     }
                 }
