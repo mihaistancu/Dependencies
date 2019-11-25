@@ -54,7 +54,7 @@ namespace Dependencies
                 {
                     try
                     {
-                        var assembly = Assembly.LoadFile(file);
+                        var assembly = Assembly.LoadFrom(file);
                         var filename = Path.GetFileName(file);
                         Assemblies[filename] = assembly;
                     }
