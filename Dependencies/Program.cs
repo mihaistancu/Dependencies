@@ -4,44 +4,51 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using CommandLine;
 
 namespace Dependencies
 {
     class Program
-    {
-        private static string InputPath;
-        private static string InputFilter;
-        private static bool IsRecursive;
+    {   
         private static readonly Dictionary<string, Assembly> Assemblies = new Dictionary<string, Assembly>();
         private static readonly Dictionary<string, Assembly> InputAssemblies = new Dictionary<string, Assembly>();
         private static readonly Dictionary<string, Assembly> Dependencies = new Dictionary<string, Assembly>();
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            InputPath = args[0];
-            InputFilter = args[1];
+            return Parser.Default.ParseArguments<Options>(args).MapResult(OnParsedArgs, OnNotParsedArgs);
+        }
 
-            if (args.Length == 3 && args[2] == "recursive")
-            {
-                IsRecursive = true;
-            }
+        private static int OnParsedArgs(Options options)
+        {
+            LoadAssemblies(options.Path);
 
-            LoadAssemblies();
-
-            FilterAssemblies();
+            FilterAssemblies(options.Filter);
 
             foreach (var inputAssembly in InputAssemblies.Values)
             {
-                ComputeDependencies(inputAssembly);
+                ComputeDependencies(inputAssembly, options.Recursive);
             }
 
             var output = Dependencies.Except(InputAssemblies);
             Print(output);
+
+            return 0;
         }
 
-        private static void LoadAssemblies()
+        private static int OnNotParsedArgs(IEnumerable<Error> errors)
         {
-            foreach (var dll in Directory.GetFiles(InputPath, "*.dll"))
+            foreach (var error in errors)
+            {
+                Console.WriteLine(error.ToString());
+            }
+
+            return 1;
+        }
+
+        private static void LoadAssemblies(string path)
+        {
+            foreach (var dll in Directory.GetFiles(path, "*.dll"))
             {
                 try
                 {
@@ -53,9 +60,9 @@ namespace Dependencies
             }
         }
 
-        private static void FilterAssemblies()
+        private static void FilterAssemblies(string filter)
         {
-            Regex regex = new Regex(InputFilter, RegexOptions.IgnoreCase);
+            Regex regex = new Regex(filter, RegexOptions.IgnoreCase);
             foreach (var assemblyPath in Assemblies.Keys)
             {
                 if (regex.IsMatch(assemblyPath))
@@ -65,7 +72,7 @@ namespace Dependencies
             }
         }
 
-        private static void ComputeDependencies(Assembly assembly)
+        private static void ComputeDependencies(Assembly assembly, bool isRecursive = true)
         {
             var dependencies = assembly.GetReferencedAssemblies();
             foreach (var dependency in dependencies)
@@ -77,7 +84,7 @@ namespace Dependencies
                     if (!Dependencies.ContainsKey(dependencyPathAndAssembly.Key))
                     {
                         Dependencies[dependencyPathAndAssembly.Key] = dependencyPathAndAssembly.Value;
-                        if (IsRecursive)
+                        if (isRecursive)
                         {
                             ComputeDependencies(dependencyPathAndAssembly.Value);
                         }
