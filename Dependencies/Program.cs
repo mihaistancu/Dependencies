@@ -119,11 +119,27 @@ namespace Dependencies
             }
         }
 
+        private static string Copyright(Assembly assembly)
+        {
+            var attribute = (AssemblyCopyrightAttribute)assembly.GetCustomAttribute(typeof(AssemblyCopyrightAttribute));
+            return attribute?.Copyright;
+        }
+
         private static void Print(IEnumerable<KeyValuePair<string, Assembly>> dependencies)
         {
             foreach (var dependency in dependencies)
             {
-                Console.WriteLine(dependency.Key);
+                Console.WriteLine("├─ " + dependency.Key);
+
+                if (Packages.ContainsKey(dependency.Key))
+                {
+                    Console.WriteLine("│  ├─ NuGet Package: " + Packages[dependency.Key].Id);
+                    Console.WriteLine("│  ├─ Version: " + Packages[dependency.Key].Version);
+                    Console.WriteLine("│  ├─ Project URL: " + Packages[dependency.Key].ProjectUrl);
+                    Console.WriteLine("│  ├─ License URL: " + Packages[dependency.Key].LicenseUrl);
+                }
+
+                Console.WriteLine("│  ├─ Copyright: " + Copyright(dependency.Value));
             }
         }
     }
