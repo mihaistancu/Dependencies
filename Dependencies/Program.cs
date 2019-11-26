@@ -121,8 +121,15 @@ namespace Dependencies
 
         private static string Copyright(Assembly assembly)
         {
-            var attribute = (AssemblyCopyrightAttribute)assembly.GetCustomAttribute(typeof(AssemblyCopyrightAttribute));
-            return attribute?.Copyright;
+            try
+            {
+                var attribute = (AssemblyCopyrightAttribute) assembly.GetCustomAttribute(typeof(AssemblyCopyrightAttribute));
+                return attribute?.Copyright;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static void Print(IEnumerable<KeyValuePair<string, Assembly>> dependencies, bool includeMicrosoft)
