@@ -35,7 +35,7 @@ namespace Dependencies
             ComputePackages(options.NuGetPath);
 
             var output = Dependencies.Except(InputAssemblies);
-            Print(output);
+            Print(output, options.IncludeMicrosoftAssemblies);
 
             return 0;
         }
@@ -125,10 +125,16 @@ namespace Dependencies
             return attribute?.Copyright;
         }
 
-        private static void Print(IEnumerable<KeyValuePair<string, Assembly>> dependencies)
+        private static void Print(IEnumerable<KeyValuePair<string, Assembly>> dependencies, bool includeMicrosoft)
         {
             foreach (var dependency in dependencies)
             {
+                var copyright = Copyright(dependency.Value);
+                if (!string.IsNullOrEmpty(copyright) && copyright.Contains("Microsoft") && !includeMicrosoft)
+                {
+                    continue;
+                }
+
                 Console.WriteLine("├─ " + dependency.Key);
 
                 if (Packages.ContainsKey(dependency.Key))

@@ -11,5 +11,7 @@ namespace Dependencies
         public string Filter { get; set; }
         [Option(Default = false)]
         public bool Recursive { get;set; }
+        [Option(Default = false)]
+        public bool IncludeMicrosoftAssemblies { get;set; }
     }
 }
